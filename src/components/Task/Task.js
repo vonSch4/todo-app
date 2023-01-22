@@ -1,30 +1,55 @@
 import React from "react";
 
 export default class Task extends React.Component {
-  render() {
-    const todo = this.props.todo;
-    let liClassName = null;
-    let inputEditing = null;
+  constructor(props) {
+    super(props);
+    this.state = {
+      completed: false,
+    };
+    this.onValueClick = this.onValueClick.bind(this);
+  }
 
-    if (todo.completed) {
+  onValueClick() {
+    this.setState(({ completed }) => {
+      return {
+        completed: !completed,
+      };
+    });
+  }
+
+  render() {
+    const { editing, value, date, onClickDelete } = this.props;
+    const { completed } = this.state;
+
+    let liClassName;
+    let inputEditing;
+
+    if (completed) {
       liClassName = "completed";
-    } else if (todo.editing) {
+    } else if (editing) {
       liClassName = "editing";
       inputEditing = (
-        <input type="text" className="edit" defaultValue={todo.value}></input>
+        <input type="text" className="edit" defaultValue={value}></input>
       );
     }
 
     return (
       <li className={liClassName}>
         <div className="view">
-          <input className="toggle" type="checkbox" />
+          <input
+            className="toggle"
+            type="checkbox"
+            onClick={this.onValueClick}
+          />
           <label>
-            <span className="description">{this.props.todo.value}</span>
-            <span className="created">{this.props.todo.date}</span>
+            <span className="description">{value}</span>
+            <span className="created">{date}</span>
           </label>
           <button className="icon icon-edit"></button>
-          <button className="icon icon-destroy"></button>
+          <button
+            className="icon icon-destroy"
+            onClick={onClickDelete}
+          ></button>
         </div>
         {inputEditing}
       </li>
