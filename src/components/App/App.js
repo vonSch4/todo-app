@@ -5,60 +5,141 @@ import NewTaskForm from "../NewTaskForm";
 import TaskList from "../TaskList";
 
 export default class App extends React.Component {
+  maxId = 0;
+
   constructor(props) {
     super(props);
-    this.deleteItem = this.deleteItem.bind(this);
     this.addItem = this.addItem.bind(this);
+    this.deleteItem = this.deleteItem.bind(this);
+    this.editItem = this.editItem.bind(this);
+    this.onToggleDone = this.onToggleDone.bind(this);
+    this.clearCompleted = this.clearCompleted.bind(this);
+    this.setFilter = this.setFilter.bind(this);
+    this.addFilter = this.addFilter.bind(this);
     this.state = {
-      todos: [],
+      todoData: [],
+      filter: "all",
     };
   }
 
-  addItem(evt) {
-    if (evt.code === "Enter") {
-      evt.preventDefault();
-
-      console.log(evt.target.value);
-
-      this.setState((prevState) => {
-        const newItem = {
-          id: prevState.todos.length ? prevState.todos.length + 1 : 1,
-          editing: false,
-          value: evt.target.value,
-          date: new Date().toLocaleTimeString(),
-        };
-
-        const newTodos = [...prevState.todos, newItem];
-
-        evt.target.value = "";
-
-        return {
-          todos: newTodos,
-        };
-      });
+  addItem(value) {
+    if (!value) {
+      return;
     }
-  }
 
-  deleteItem(identificator) {
+    const newItem = {
+      id: ++this.maxId,
+      completed: false,
+      value,
+      date: new Date().toISOString(),
+    };
+
     this.setState((prevState) => {
-      const items = prevState.todos.filter(({ id }) => {
-        return id !== identificator;
-      });
+      const newTodos = [...prevState.todoData, newItem];
+
       return {
-        todos: items,
+        todoData: newTodos,
       };
     });
   }
 
+  deleteItem(identifier) {
+    this.setState((prevState) => {
+      const newTodoData = prevState.todoData.filter(({ id }) => {
+        return id !== identifier;
+      });
+      return {
+        todoData: newTodoData,
+      };
+    });
+  }
+
+  editItem(value, identifier) {
+    this.setState((prevState) => {
+      const newTodoData = JSON.parse(JSON.stringify(prevState.todoData));
+
+      newTodoData.map((el) => {
+        if (el.id === identifier) {
+          el.value = value;
+        }
+        return el;
+      });
+
+      return {
+        todoData: newTodoData,
+      };
+    });
+  }
+
+  onToggleDone(identifier) {
+    this.setState((prevState) => {
+      const newTodoData = JSON.parse(JSON.stringify(prevState.todoData));
+
+      newTodoData.map((el) => {
+        if (el.id === identifier) {
+          el.completed = !el.completed;
+        }
+        return el;
+      });
+
+      return {
+        todoData: newTodoData,
+      };
+    });
+  }
+
+  clearCompleted() {
+    this.setState((prevState) => {
+      const newTodoData = prevState.todoData.filter(
+        ({ completed }) => !completed
+      );
+
+      return {
+        todoData: newTodoData,
+      };
+    });
+  }
+
+  setFilter(filter) {
+    this.setState({
+      filter: filter,
+    });
+  }
+
+  addFilter(items, filter) {
+    switch (filter) {
+      case "all":
+        return items;
+      case "active":
+        return items.filter((item) => !item.completed);
+      case "completed":
+        return items.filter((item) => item.completed);
+      default:
+        return items;
+    }
+  }
+
   render() {
-    const { todos } = this.state;
+    const { todoData, filter } = this.state;
+
+    const visibleItem = this.addFilter(todoData, filter);
 
     return (
       <section className="todoapp">
         <NewTaskForm addItem={this.addItem} />
         <main className="main">
-          <TaskList todos={todos} onClickDelete={this.deleteItem} />
-          <Footer todos={todos} />
+          <TaskList
+            todoData={visibleItem}
+            deleteItem={this.deleteItem}
+            editItem={this.editItem}
+            onToggleDone={this.onToggleDone}
+          />
+          <Footer
+            todoData={todoData}
+            clearCompleted={this.clearCompleted}
+            setFilter={this.setFilter}
+            filter={filter}
+          />
         </main>
       </section>
     );
