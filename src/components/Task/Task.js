@@ -1,6 +1,7 @@
-import React from "react";
-import formatDistanceToNow from "date-fns/formatDistanceToNow";
-import parseISO from "date-fns/parseISO";
+import React from 'react';
+import formatDistanceToNow from 'date-fns/formatDistanceToNow';
+import parseISO from 'date-fns/parseISO';
+import PropTypes from 'prop-types';
 
 export default class Task extends React.Component {
   constructor(props) {
@@ -20,10 +21,13 @@ export default class Task extends React.Component {
   }
 
   onSubmitEdit(evt) {
-    evt.preventDefault();
-    if (!this.state.value) return;
+    const { value } = this.state;
+    const { id, editItem } = this.props;
 
-    this.props.editItem(this.state.value, this.props.id);
+    evt.preventDefault();
+    if (!value) return;
+
+    editItem(value, id);
 
     this.setState({
       editing: false,
@@ -38,18 +42,17 @@ export default class Task extends React.Component {
     let formEdit;
 
     if (completed) {
-      liClassName = "completed";
+      liClassName = 'completed';
     } else if (editing) {
-      liClassName = "editing";
+      liClassName = 'editing';
       formEdit = (
         <form onSubmit={this.onSubmitEdit}>
           <input
             type="text"
             className="edit"
-            autoFocus
             onChange={this.onValueChange}
             value={value}
-          ></input>
+          />
         </form>
       );
     }
@@ -73,16 +76,37 @@ export default class Task extends React.Component {
             </span>
           </label>
           <button
+            type="button"
+            aria-label="Edit"
             className="icon icon-edit"
             onClick={() => this.setState({ editing: true })}
-          ></button>
+          />
           <button
+            type="button"
+            aria-label="Delete"
             className="icon icon-destroy"
             onClick={() => deleteItem(id)}
-          ></button>
+          />
         </div>
         {formEdit}
       </li>
     );
   }
 }
+
+Task.defaultProps = {
+  completed: false,
+  deleteItem: () => {},
+  editItem: () => {},
+  onToggleDone: () => {},
+};
+
+Task.propTypes = {
+  completed: PropTypes.bool,
+  date: PropTypes.string.isRequired,
+  id: PropTypes.number.isRequired,
+  value: PropTypes.string.isRequired,
+  deleteItem: PropTypes.func,
+  editItem: PropTypes.func,
+  onToggleDone: PropTypes.func,
+};

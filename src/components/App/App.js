@@ -1,10 +1,23 @@
-import React from "react";
+import React from 'react';
 
-import Footer from "../Footer";
-import NewTaskForm from "../NewTaskForm";
-import TaskList from "../TaskList";
+import Footer from '../Footer';
+import NewTaskForm from '../NewTaskForm';
+import TaskList from '../TaskList';
 
 export default class App extends React.Component {
+  static addFilter(items, filter) {
+    switch (filter) {
+      case 'all':
+        return items;
+      case 'active':
+        return items.filter((item) => !item.completed);
+      case 'completed':
+        return items.filter((item) => item.completed);
+      default:
+        return items;
+    }
+  }
+
   maxId = 0;
 
   constructor(props) {
@@ -15,11 +28,33 @@ export default class App extends React.Component {
     this.onToggleDone = this.onToggleDone.bind(this);
     this.clearCompleted = this.clearCompleted.bind(this);
     this.setFilter = this.setFilter.bind(this);
-    this.addFilter = this.addFilter.bind(this);
     this.state = {
       todoData: [],
-      filter: "all",
+      filter: 'all',
     };
+  }
+
+  onToggleDone(identifier) {
+    this.setState((prevState) => {
+      const newTodoData = JSON.parse(JSON.stringify(prevState.todoData));
+
+      newTodoData.map((el) => {
+        if (el.id === identifier) {
+          el.completed = !el.completed;
+        }
+        return el;
+      });
+
+      return {
+        todoData: newTodoData,
+      };
+    });
+  }
+
+  setFilter(filter) {
+    this.setState({
+      filter,
+    });
   }
 
   addItem(value) {
@@ -45,9 +80,9 @@ export default class App extends React.Component {
 
   deleteItem(identifier) {
     this.setState((prevState) => {
-      const newTodoData = prevState.todoData.filter(({ id }) => {
-        return id !== identifier;
-      });
+      const newTodoData = prevState.todoData.filter(
+        ({ id }) => id !== identifier
+      );
       return {
         todoData: newTodoData,
       };
@@ -71,23 +106,6 @@ export default class App extends React.Component {
     });
   }
 
-  onToggleDone(identifier) {
-    this.setState((prevState) => {
-      const newTodoData = JSON.parse(JSON.stringify(prevState.todoData));
-
-      newTodoData.map((el) => {
-        if (el.id === identifier) {
-          el.completed = !el.completed;
-        }
-        return el;
-      });
-
-      return {
-        todoData: newTodoData,
-      };
-    });
-  }
-
   clearCompleted() {
     this.setState((prevState) => {
       const newTodoData = prevState.todoData.filter(
@@ -100,29 +118,10 @@ export default class App extends React.Component {
     });
   }
 
-  setFilter(filter) {
-    this.setState({
-      filter: filter,
-    });
-  }
-
-  addFilter(items, filter) {
-    switch (filter) {
-      case "all":
-        return items;
-      case "active":
-        return items.filter((item) => !item.completed);
-      case "completed":
-        return items.filter((item) => item.completed);
-      default:
-        return items;
-    }
-  }
-
   render() {
     const { todoData, filter } = this.state;
 
-    const visibleItem = this.addFilter(todoData, filter);
+    const visibleItem = App.addFilter(todoData, filter);
 
     return (
       <section className="todoapp">
