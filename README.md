@@ -1,3 +1,3 @@
-React Todo-app on class
+React Todo-app on Class
 
-Link: https://todo-vonsch4.vercel.app/
+Link: vonsch4-todo-onclass.vercel.app
