@@ -5,6 +5,10 @@ import Task from '../Task';
 export default function TaskList(props) {
   const { todoData, deleteItem, editItem, onToggleDone } = props;
 
+  if (todoData.length === 0) {
+    return <div className="empty-list">The task list is empty</div>;
+  }
+
   return (
     <ul className="todo-list">
       {todoData.map((prop) => {
