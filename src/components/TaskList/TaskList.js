@@ -33,7 +33,7 @@ TaskList.defaultProps = {
 TaskList.propTypes = {
   todoData: PropTypes.arrayOf(
     PropTypes.shape({
-      id: PropTypes.number,
+      id: PropTypes.string,
       completed: PropTypes.bool,
       value: PropTypes.string,
       date: PropTypes.string,

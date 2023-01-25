@@ -2,6 +2,7 @@ import React from 'react';
 import formatDistanceToNow from 'date-fns/formatDistanceToNow';
 import parseISO from 'date-fns/parseISO';
 import PropTypes from 'prop-types';
+import classNames from 'classnames';
 
 export default class Task extends React.Component {
   constructor(props) {
@@ -15,8 +16,10 @@ export default class Task extends React.Component {
   }
 
   onValueChange(evt) {
-    this.setState({
-      value: evt.target.value,
+    this.setState(() => {
+      return {
+        value: evt.target.value,
+      };
     });
   }
 
@@ -38,24 +41,17 @@ export default class Task extends React.Component {
     const { id, date, completed, deleteItem, onToggleDone } = this.props;
     const { editing, value } = this.state;
 
-    let liClassName;
-    let formEdit;
-
-    if (completed) {
-      liClassName = 'completed';
-    } else if (editing) {
-      liClassName = 'editing';
-      formEdit = (
-        <form onSubmit={this.onSubmitEdit}>
-          <input
-            type="text"
-            className="edit"
-            onChange={this.onValueChange}
-            value={value}
-          />
-        </form>
-      );
-    }
+    const liClassName = classNames({ completed, editing });
+    const formEdit = (
+      <form onSubmit={this.onSubmitEdit}>
+        <input
+          type="text"
+          className="edit"
+          onChange={this.onValueChange}
+          value={value}
+        />
+      </form>
+    );
 
     return (
       <li className={liClassName}>
@@ -88,7 +84,7 @@ export default class Task extends React.Component {
             onClick={() => deleteItem(id)}
           />
         </div>
-        {formEdit}
+        {editing && formEdit}
       </li>
     );
   }
@@ -104,7 +100,7 @@ Task.defaultProps = {
 Task.propTypes = {
   completed: PropTypes.bool,
   date: PropTypes.string.isRequired,
-  id: PropTypes.number.isRequired,
+  id: PropTypes.string.isRequired,
   value: PropTypes.string.isRequired,
   deleteItem: PropTypes.func,
   editItem: PropTypes.func,

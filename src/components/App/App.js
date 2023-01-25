@@ -1,24 +1,33 @@
 import React from 'react';
+import { v4 as uuidv4 } from 'uuid';
 
 import Footer from '../Footer';
 import NewTaskForm from '../NewTaskForm';
 import TaskList from '../TaskList';
 
+const filters = {
+  all: 'all',
+  active: 'active',
+  completed: 'completed',
+};
+
 export default class App extends React.Component {
   static addFilter(items, filter) {
     switch (filter) {
-      case 'all':
+      case filters.all:
         return items;
-      case 'active':
+      case filters.active:
         return items.filter((item) => !item.completed);
-      case 'completed':
+      case filters.completed:
         return items.filter((item) => item.completed);
       default:
         return items;
     }
   }
 
-  maxId = 0;
+  static saveToLocalStorage(data) {
+    localStorage.setItem('todoData', JSON.stringify(data));
+  }
 
   constructor(props) {
     super(props);
@@ -30,8 +39,26 @@ export default class App extends React.Component {
     this.setFilter = this.setFilter.bind(this);
     this.state = {
       todoData: [],
-      filter: 'all',
+      filter: filters.all,
     };
+  }
+
+  componentDidMount() {
+    let savedTodoData = localStorage.getItem('todoData');
+
+    if (savedTodoData) {
+      try {
+        savedTodoData = JSON.parse(savedTodoData);
+      } catch (e) {
+        throw new Error(e.message);
+      }
+
+      this.setState(() => {
+        return {
+          todoData: savedTodoData,
+        };
+      });
+    }
   }
 
   onToggleDone(identifier) {
@@ -44,6 +71,8 @@ export default class App extends React.Component {
         }
         return el;
       });
+
+      App.saveToLocalStorage(newTodoData);
 
       return {
         todoData: newTodoData,
@@ -63,17 +92,19 @@ export default class App extends React.Component {
     }
 
     const newItem = {
-      id: ++this.maxId,
+      id: uuidv4(),
       completed: false,
       value,
       date: new Date().toISOString(),
     };
 
     this.setState((prevState) => {
-      const newTodos = [...prevState.todoData, newItem];
+      const newTodoData = [...prevState.todoData, newItem];
+
+      App.saveToLocalStorage(newTodoData);
 
       return {
-        todoData: newTodos,
+        todoData: newTodoData,
       };
     });
   }
@@ -83,6 +114,9 @@ export default class App extends React.Component {
       const newTodoData = prevState.todoData.filter(
         ({ id }) => id !== identifier
       );
+
+      App.saveToLocalStorage(newTodoData);
+
       return {
         todoData: newTodoData,
       };
@@ -100,6 +134,8 @@ export default class App extends React.Component {
         return el;
       });
 
+      App.saveToLocalStorage(newTodoData);
+
       return {
         todoData: newTodoData,
       };
@@ -111,6 +147,8 @@ export default class App extends React.Component {
       const newTodoData = prevState.todoData.filter(
         ({ completed }) => !completed
       );
+
+      App.saveToLocalStorage(newTodoData);
 
       return {
         todoData: newTodoData,
@@ -137,6 +175,7 @@ export default class App extends React.Component {
             todoData={todoData}
             clearCompleted={this.clearCompleted}
             setFilter={this.setFilter}
+            filters={filters}
             filter={filter}
           />
         </main>

@@ -3,14 +3,14 @@ import PropTypes from 'prop-types';
 import TasksFilter from '../TasksFilter';
 
 export default function Footer(props) {
-  const { todoData, clearCompleted, setFilter, filter } = props;
+  const { todoData, clearCompleted, setFilter, filters, filter } = props;
 
   const completedCount = todoData.filter(({ completed }) => !completed).length;
 
   return (
     <footer className="footer">
       <span className="todo-count">{completedCount} items left</span>
-      <TasksFilter setFilter={setFilter} filter={filter} />
+      <TasksFilter setFilter={setFilter} filters={filters} filter={filter} />
       <button
         type="button"
         className="clear-completed"
