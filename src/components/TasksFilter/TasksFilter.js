@@ -2,18 +2,19 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 export default class TasksFilter extends React.Component {
-  allFilter = this.props.filters.all;
-
-  activeFilter = this.props.filters.active;
-
-  completedFilter = this.props.filters.completed;
-
   constructor(props) {
     super(props);
+
+    const {
+      all: allFilter,
+      active: activeFilter,
+      completed: completedFilter,
+    } = props.filters;
+
     this.buttons = [
-      { name: this.allFilter, text: 'All' },
-      { name: this.activeFilter, text: 'Active' },
-      { name: this.completedFilter, text: 'Completed' },
+      { name: allFilter, text: 'All' },
+      { name: activeFilter, text: 'Active' },
+      { name: completedFilter, text: 'Completed' },
     ];
   }
 

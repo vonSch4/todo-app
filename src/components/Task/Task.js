@@ -9,9 +9,10 @@ export default class Task extends React.Component {
     super(props);
     this.onValueChange = this.onValueChange.bind(this);
     this.onSubmitEdit = this.onSubmitEdit.bind(this);
+    const { value } = this.props;
     this.state = {
       editing: false,
-      value: this.props.value,
+      value,
     };
   }
 
