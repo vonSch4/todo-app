@@ -35,17 +35,20 @@ export default function TaskList(props) {
 }
 
 TaskList.defaultProps = {
-  todoData: [],
+  visibleItem: [],
   deleteItem: () => {},
   editItem: () => {},
   onToggleDone: () => {},
+  timerPause: () => {},
+  setTaskTimer: () => {},
 };
 
 TaskList.propTypes = {
-  todoData: PropTypes.arrayOf(
+  visibleItem: PropTypes.arrayOf(
     PropTypes.shape({
       id: PropTypes.string,
       completed: PropTypes.bool,
+      paused: PropTypes.bool,
       value: PropTypes.string,
       date: PropTypes.string,
     })
@@ -53,4 +56,6 @@ TaskList.propTypes = {
   deleteItem: PropTypes.func,
   editItem: PropTypes.func,
   onToggleDone: PropTypes.func,
+  timerPause: PropTypes.func,
+  setTaskTimer: PropTypes.func,
 };

@@ -121,17 +121,23 @@ export default class Task extends React.Component {
 
 Task.defaultProps = {
   completed: false,
+  time: 0,
   deleteItem: () => {},
   editItem: () => {},
   onToggleDone: () => {},
+  timerPause: () => {},
+  setTaskTimer: () => {},
 };
 
 Task.propTypes = {
   completed: PropTypes.bool,
+  time: PropTypes.number,
   date: PropTypes.string.isRequired,
   id: PropTypes.string.isRequired,
   value: PropTypes.string.isRequired,
   deleteItem: PropTypes.func,
   editItem: PropTypes.func,
   onToggleDone: PropTypes.func,
+  timerPause: PropTypes.func,
+  setTaskTimer: PropTypes.func,
 };
