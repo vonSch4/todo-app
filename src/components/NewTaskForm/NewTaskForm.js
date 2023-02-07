@@ -4,16 +4,17 @@ import PropTypes from 'prop-types';
 export default class NewTaskForm extends React.Component {
   constructor(props) {
     super(props);
-    this.onValueChange = this.onValueChange.bind(this);
     this.onSubmitForm = this.onSubmitForm.bind(this);
     this.state = {
       value: '',
+      min: '',
+      sec: '',
     };
   }
 
-  onValueChange(evt) {
+  onValueChange(evt, value) {
     this.setState({
-      value: evt.target.value,
+      [value]: evt.target.value,
     });
   }
 
@@ -21,30 +22,50 @@ export default class NewTaskForm extends React.Component {
     evt.preventDefault();
 
     const { addItem } = this.props;
-    const { value } = this.state;
+    const { value, min, sec } = this.state;
 
-    addItem(value);
+    if (value && min && sec) {
+      if (min < 0 || min > 100 || sec < 0 || sec > 59) return;
+      if (Number.isNaN(+min) || Number.isNaN(+sec)) return;
 
-    this.setState({
-      value: '',
-    });
+      addItem(value, +min * 60 + +sec);
+
+      this.setState({
+        value: '',
+        min: '',
+        sec: '',
+      });
+    }
   }
 
   render() {
-    const { value } = this.state;
+    const { value, min, sec } = this.state;
 
     return (
-      <form className="header" onSubmit={this.onSubmitForm}>
+      <header className="header">
         <h1>todos</h1>
-        <label>
+        <form className="new-todo-form" onSubmit={this.onSubmitForm}>
           <input
             className="new-todo"
             placeholder="What needs to be done?"
-            onChange={this.onValueChange}
+            onChange={(evt) => this.onValueChange(evt, 'value')}
             value={value}
           />
-        </label>
-      </form>
+          <input
+            className="new-todo-form__timer"
+            placeholder="Min"
+            onChange={(evt) => this.onValueChange(evt, 'min')}
+            value={min}
+          />
+          <input
+            className="new-todo-form__timer"
+            placeholder="Sec"
+            onChange={(evt) => this.onValueChange(evt, 'sec')}
+            value={sec}
+          />
+          <button type="submit" value="Отправить" />
+        </form>
+      </header>
     );
   }
 }

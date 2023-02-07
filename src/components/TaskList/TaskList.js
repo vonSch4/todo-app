@@ -3,22 +3,31 @@ import PropTypes from 'prop-types';
 import Task from '../Task';
 
 export default function TaskList(props) {
-  const { todoData, deleteItem, editItem, onToggleDone } = props;
+  const {
+    visibleItem,
+    deleteItem,
+    editItem,
+    onToggleDone,
+    setTaskTimer,
+    timerPause,
+  } = props;
 
-  const listItem = todoData.map((prop) => {
-    const { id: key } = prop;
+  const listItem = visibleItem.map((item) => {
+    const { id } = item;
     return (
       <Task
-        key={key}
-        {...prop}
+        key={id}
+        {...item}
         deleteItem={deleteItem}
         editItem={editItem}
         onToggleDone={onToggleDone}
+        setTaskTimer={setTaskTimer}
+        timerPause={timerPause}
       />
     );
   });
 
-  if (todoData.length === 0) {
+  if (visibleItem.length === 0) {
     return <div className="empty-list">The task list is empty</div>;
   }
 

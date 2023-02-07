@@ -11,6 +11,8 @@ const filters = {
   completed: 'completed',
 };
 
+const timers = {};
+
 export default class App extends React.Component {
   static addFilter(items, filter) {
     switch (filter) {
@@ -37,6 +39,8 @@ export default class App extends React.Component {
     this.onToggleDone = this.onToggleDone.bind(this);
     this.clearCompleted = this.clearCompleted.bind(this);
     this.setFilter = this.setFilter.bind(this);
+    this.setTaskTimer = this.setTaskTimer.bind(this);
+    this.timerPause = this.timerPause.bind(this);
     this.state = {
       todoData: [],
       filter: filters.all,
@@ -61,6 +65,20 @@ export default class App extends React.Component {
     }
   }
 
+  componentDidUpdate() {
+    const { todoData } = this.state;
+
+    todoData.forEach(({ completed, paused, id }) => {
+      if (!completed && !paused) {
+        this.setTaskTimer(id);
+      }
+
+      if (completed || paused) {
+        this.timerPause(id);
+      }
+    });
+  }
+
   onToggleDone(identifier) {
     this.setState((prevState) => {
       const newTodoData = JSON.parse(JSON.stringify(prevState.todoData));
@@ -68,6 +86,7 @@ export default class App extends React.Component {
       newTodoData.map((el) => {
         if (el.id === identifier) {
           el.completed = !el.completed;
+          el.paused = el.completed;
         }
         return el;
       });
@@ -86,15 +105,87 @@ export default class App extends React.Component {
     });
   }
 
-  addItem(value) {
-    if (!value) {
-      return;
-    }
+  setTaskTimer(identifier) {
+    if (timers[identifier]) return;
 
+    this.setState((prevState) => {
+      const newTodoData = JSON.parse(JSON.stringify(prevState.todoData));
+
+      newTodoData.map((el) => {
+        if (el.id === identifier) {
+          if (!timers[el.id] && !el.completed && el.time) {
+            timers[el.id] = setInterval(() => {
+              this.tick(el.id);
+            }, 1000);
+
+            el.paused = false;
+          }
+        }
+        return el;
+      });
+
+      return {
+        todoData: newTodoData,
+      };
+    });
+  }
+
+  tick(identifier) {
+    this.setState((prevState) => {
+      const newTodoData = JSON.parse(JSON.stringify(prevState.todoData));
+
+      newTodoData.map((el) => {
+        if (el.id === identifier) {
+          if (el.time === 0) {
+            clearInterval(timers[el.id]);
+            delete timers[el.id];
+            return el;
+          }
+
+          el.time -= 1;
+        }
+        return el;
+      });
+
+      App.saveToLocalStorage(newTodoData);
+
+      return {
+        todoData: newTodoData,
+      };
+    });
+  }
+
+  timerPause(identifier) {
+    if (!timers[identifier]) return;
+
+    clearInterval(timers[identifier]);
+    delete timers[identifier];
+
+    this.setState((prevState) => {
+      const newTodoData = JSON.parse(JSON.stringify(prevState.todoData));
+
+      newTodoData.map((el) => {
+        if (el.id === identifier) {
+          el.paused = true;
+        }
+        return el;
+      });
+
+      App.saveToLocalStorage(newTodoData);
+
+      return {
+        todoData: newTodoData,
+      };
+    });
+  }
+
+  addItem(value, time) {
     const newItem = {
       id: uuidv4(),
       completed: false,
+      paused: false,
       value,
+      time,
       date: new Date().toISOString(),
     };
 
@@ -166,10 +257,12 @@ export default class App extends React.Component {
         <NewTaskForm addItem={this.addItem} />
         <main className="main">
           <TaskList
-            todoData={visibleItem}
+            visibleItem={visibleItem}
             deleteItem={this.deleteItem}
             editItem={this.editItem}
             onToggleDone={this.onToggleDone}
+            setTaskTimer={this.setTaskTimer}
+            timerPause={this.timerPause}
           />
           <Footer
             todoData={todoData}

@@ -39,7 +39,17 @@ export default class Task extends React.Component {
   }
 
   render() {
-    const { id, date, completed, deleteItem, onToggleDone } = this.props;
+    const {
+      id,
+      date,
+      completed,
+      deleteItem,
+      onToggleDone,
+      time,
+      timerPause,
+      setTaskTimer,
+    } = this.props;
+
     const { editing, value } = this.state;
 
     const liClassName = classNames({ completed, editing });
@@ -54,6 +64,9 @@ export default class Task extends React.Component {
       </form>
     );
 
+    const sec = time % 60 > 9 ? time % 60 : `0${time % 60}`;
+    const min = Math.trunc(time / 60);
+
     return (
       <li className={liClassName}>
         <div className="view">
@@ -65,10 +78,25 @@ export default class Task extends React.Component {
             onChange={() => onToggleDone(id)}
           />
           <label htmlFor={id}>
-            <span className="description">{value}</span>
-            <span className="created">
+            <span className="title">{value}</span>
+            <span className="description">
+              <button
+                type="button"
+                className="icon icon-play"
+                onClick={() => setTaskTimer(id)}
+              />
+              <button
+                type="button"
+                className="icon icon-pause"
+                onClick={() => timerPause(id)}
+              />
+              {` ${min}:${sec}`}
+            </span>
+            <span className="description">
+              {'created '}
               {formatDistanceToNow(parseISO(date), {
                 addSuffix: true,
+                includeSeconds: true,
               })}
             </span>
           </label>
