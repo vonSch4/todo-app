@@ -110,7 +110,10 @@ export default class Task extends React.Component {
             type="button"
             aria-label="Delete"
             className="icon icon-destroy"
-            onClick={() => deleteItem(id)}
+            onClick={() => {
+              deleteItem(id);
+              timerPause(id);
+            }}
           />
         </div>
         {editing && formEdit}

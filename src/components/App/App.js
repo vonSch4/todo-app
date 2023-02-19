@@ -201,8 +201,6 @@ export default class App extends React.Component {
   }
 
   deleteItem(identifier) {
-    this.timerPause(identifier);
-
     this.setState((prevState) => {
       const newTodoData = prevState.todoData.filter(
         ({ id }) => id !== identifier
