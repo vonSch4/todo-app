@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
 import Footer from '../Footer';
@@ -13,75 +13,30 @@ const filters = {
 
 const timers = {};
 
-export default class App extends React.Component {
-  static addFilter(items, filter) {
-    switch (filter) {
-      case filters.all:
-        return items;
-      case filters.active:
-        return items.filter((item) => !item.completed);
-      case filters.completed:
-        return items.filter((item) => item.completed);
-      default:
-        return items;
-    }
+const addFilter = (items, filter) => {
+  switch (filter) {
+    case filters.all:
+      return items;
+    case filters.active:
+      return items.filter((item) => !item.completed);
+    case filters.completed:
+      return items.filter((item) => item.completed);
+    default:
+      return items;
   }
+};
 
-  static saveToLocalStorage(data) {
-    localStorage.setItem('todoData', JSON.stringify(data));
-  }
+const saveToLocalStorage = (data) => {
+  localStorage.setItem('todoData', JSON.stringify(data));
+};
 
-  constructor(props) {
-    super(props);
-    this.addItem = this.addItem.bind(this);
-    this.deleteItem = this.deleteItem.bind(this);
-    this.editItem = this.editItem.bind(this);
-    this.onToggleDone = this.onToggleDone.bind(this);
-    this.clearCompleted = this.clearCompleted.bind(this);
-    this.setFilter = this.setFilter.bind(this);
-    this.setTaskTimer = this.setTaskTimer.bind(this);
-    this.timerPause = this.timerPause.bind(this);
-    this.state = {
-      todoData: [],
-      filter: filters.all,
-    };
-  }
+export default function App() {
+  const [todoData, setTodoData] = useState([]);
+  const [filter, setFilter] = useState(filters.all);
 
-  componentDidMount() {
-    let savedTodoData = localStorage.getItem('todoData');
-
-    if (savedTodoData) {
-      try {
-        savedTodoData = JSON.parse(savedTodoData);
-      } catch (e) {
-        throw new Error(e.message);
-      }
-
-      this.setState(() => {
-        return {
-          todoData: savedTodoData,
-        };
-      });
-    }
-  }
-
-  componentDidUpdate() {
-    const { todoData } = this.state;
-
-    todoData.forEach(({ completed, paused, id }) => {
-      if (!completed && !paused) {
-        this.setTaskTimer(id);
-      }
-
-      if (completed || paused) {
-        this.timerPause(id);
-      }
-    });
-  }
-
-  onToggleDone(identifier) {
-    this.setState((prevState) => {
-      const newTodoData = JSON.parse(JSON.stringify(prevState.todoData));
+  const onToggleDone = (identifier) => {
+    setTodoData((prevData) => {
+      const newTodoData = structuredClone(prevData);
 
       newTodoData.map((el) => {
         if (el.id === identifier) {
@@ -91,48 +46,15 @@ export default class App extends React.Component {
         return el;
       });
 
-      App.saveToLocalStorage(newTodoData);
+      saveToLocalStorage(newTodoData);
 
-      return {
-        todoData: newTodoData,
-      };
+      return newTodoData;
     });
-  }
+  };
 
-  setFilter(filter) {
-    this.setState({
-      filter,
-    });
-  }
-
-  setTaskTimer(identifier) {
-    if (timers[identifier]) return;
-
-    this.setState((prevState) => {
-      const newTodoData = JSON.parse(JSON.stringify(prevState.todoData));
-
-      newTodoData.map((el) => {
-        if (el.id === identifier) {
-          if (!timers[el.id] && !el.completed && el.time) {
-            timers[el.id] = setInterval(() => {
-              this.tick(el.id);
-            }, 1000);
-
-            el.paused = false;
-          }
-        }
-        return el;
-      });
-
-      return {
-        todoData: newTodoData,
-      };
-    });
-  }
-
-  tick(identifier) {
-    this.setState((prevState) => {
-      const newTodoData = JSON.parse(JSON.stringify(prevState.todoData));
+  const tick = (identifier) => {
+    setTodoData((prevData) => {
+      const newTodoData = structuredClone(prevData);
 
       newTodoData.map((el) => {
         if (el.id === identifier) {
@@ -147,22 +69,44 @@ export default class App extends React.Component {
         return el;
       });
 
-      App.saveToLocalStorage(newTodoData);
+      saveToLocalStorage(newTodoData);
 
-      return {
-        todoData: newTodoData,
-      };
+      return newTodoData;
     });
-  }
+  };
 
-  timerPause(identifier) {
+  const setTaskTimer = (identifier) => {
+    if (timers[identifier]) return;
+
+    setTodoData((prevData) => {
+      const newTodoData = structuredClone(prevData);
+
+      newTodoData.map((el) => {
+        if (el.id === identifier) {
+          if (!timers[el.id] && !el.completed && el.time) {
+            timers[el.id] = setInterval(() => {
+              tick(el.id);
+            }, 1000);
+
+            el.paused = false;
+          }
+        }
+
+        return el;
+      });
+
+      return newTodoData;
+    });
+  };
+
+  const timerPause = (identifier) => {
     if (!timers[identifier]) return;
 
     clearInterval(timers[identifier]);
     delete timers[identifier];
 
-    this.setState((prevState) => {
-      const newTodoData = JSON.parse(JSON.stringify(prevState.todoData));
+    setTodoData((prevData) => {
+      const newTodoData = structuredClone(prevData);
 
       newTodoData.map((el) => {
         if (el.id === identifier) {
@@ -171,15 +115,13 @@ export default class App extends React.Component {
         return el;
       });
 
-      App.saveToLocalStorage(newTodoData);
+      saveToLocalStorage(newTodoData);
 
-      return {
-        todoData: newTodoData,
-      };
+      return newTodoData;
     });
-  }
+  };
 
-  addItem(value, time) {
+  const addItem = (value, time) => {
     const newItem = {
       id: uuidv4(),
       completed: false,
@@ -189,34 +131,28 @@ export default class App extends React.Component {
       date: new Date().toISOString(),
     };
 
-    this.setState((prevState) => {
-      const newTodoData = [...prevState.todoData, newItem];
+    setTodoData((prevData) => {
+      const newTodoData = [...prevData, newItem];
 
-      App.saveToLocalStorage(newTodoData);
+      saveToLocalStorage(newTodoData);
 
-      return {
-        todoData: newTodoData,
-      };
+      return newTodoData;
     });
-  }
+  };
 
-  deleteItem(identifier) {
-    this.setState((prevState) => {
-      const newTodoData = prevState.todoData.filter(
-        ({ id }) => id !== identifier
-      );
+  const deleteItem = (identifier) => {
+    setTodoData((prevData) => {
+      const newTodoData = prevData.filter(({ id }) => id !== identifier);
 
-      App.saveToLocalStorage(newTodoData);
+      saveToLocalStorage(newTodoData);
 
-      return {
-        todoData: newTodoData,
-      };
+      return newTodoData;
     });
-  }
+  };
 
-  editItem(value, identifier) {
-    this.setState((prevState) => {
-      const newTodoData = JSON.parse(JSON.stringify(prevState.todoData));
+  const editItem = (value, identifier) => {
+    setTodoData((prevData) => {
+      const newTodoData = structuredClone(prevData);
 
       newTodoData.map((el) => {
         if (el.id === identifier) {
@@ -225,54 +161,70 @@ export default class App extends React.Component {
         return el;
       });
 
-      App.saveToLocalStorage(newTodoData);
+      saveToLocalStorage(newTodoData);
 
-      return {
-        todoData: newTodoData,
-      };
+      return newTodoData;
     });
-  }
+  };
 
-  clearCompleted() {
-    this.setState((prevState) => {
-      const newTodoData = prevState.todoData.filter(
-        ({ completed }) => !completed
-      );
+  const clearCompleted = () => {
+    setTodoData((prevData) => {
+      const newTodoData = prevData.filter(({ completed }) => !completed);
 
-      App.saveToLocalStorage(newTodoData);
+      saveToLocalStorage(newTodoData);
 
-      return {
-        todoData: newTodoData,
-      };
+      return newTodoData;
     });
-  }
+  };
 
-  render() {
-    const { todoData, filter } = this.state;
+  useEffect(() => {
+    let savedTodoData = localStorage.getItem('todoData');
 
-    const visibleItem = App.addFilter(todoData, filter);
+    if (savedTodoData) {
+      try {
+        savedTodoData = JSON.parse(savedTodoData);
+      } catch (e) {
+        throw new Error(e.message);
+      }
 
-    return (
-      <section className="todoapp">
-        <NewTaskForm addItem={this.addItem} />
-        <main className="main">
-          <TaskList
-            visibleItem={visibleItem}
-            deleteItem={this.deleteItem}
-            editItem={this.editItem}
-            onToggleDone={this.onToggleDone}
-            setTaskTimer={this.setTaskTimer}
-            timerPause={this.timerPause}
-          />
-          <Footer
-            todoData={todoData}
-            clearCompleted={this.clearCompleted}
-            setFilter={this.setFilter}
-            filters={filters}
-            filter={filter}
-          />
-        </main>
-      </section>
-    );
-  }
+      setTodoData(savedTodoData);
+    }
+  }, []);
+
+  useEffect(() => {
+    todoData.forEach(({ completed, paused, id, time }) => {
+      if (!completed && !paused && time) {
+        setTaskTimer(id);
+      }
+
+      if (completed) {
+        timerPause(id);
+      }
+    });
+  });
+
+  const visibleItem = addFilter(todoData, filter);
+
+  return (
+    <section className="todoapp">
+      <NewTaskForm addItem={addItem} />
+      <main className="main">
+        <TaskList
+          visibleItem={visibleItem}
+          deleteItem={deleteItem}
+          editItem={editItem}
+          onToggleDone={onToggleDone}
+          setTaskTimer={setTaskTimer}
+          timerPause={timerPause}
+        />
+        <Footer
+          todoData={todoData}
+          clearCompleted={clearCompleted}
+          setFilter={setFilter}
+          filters={filters}
+          filter={filter}
+        />
+      </main>
+    </section>
+  );
 }
